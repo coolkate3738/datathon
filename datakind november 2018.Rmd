@@ -1,0 +1,592 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+#gender split
+attach(users_clean)
+plot(users_clean$Gender, legend.text = "gender")
+
+
+```
+
+```{r}
+plot(users_clean$Local_Authority, legend.text = "local authority split")
+
+```
+
+
+```{r}
+plot(users_clean$Other_Projects,legend.text = "other projects attended")
+ #can also do the col='black',lty=1 in here.
+```
+
+```{r}
+#get a feel how many taken up other projects
+summary(users_clean)
+
+```
+
+```{r}
+#average number of sessions attended for each user
+attach(attendances_clean)
+mean_per_person<-(aggregate(attendances_clean[, 7], list(attendances_clean$Person.ID), mean))
+mean(mean_per_person$x)
+```
+
+
+```{r}
+attendances_clean$Session.Date<-as.Date(attendances_clean$Session.Date)
+period<-(max(attendances_clean$Session.Date)-min(attendances_clean$Session.Date))
+max<-(aggregate(attendances_clean[, 5], list(attendances_clean$Person.ID,attendances_clean$Big.four), max))
+
+
+min<-(aggregate(attendances_clean[, 5], list(attendances_clean$Person.ID,attendances_clean$Big.four), min))
+
+
+max_min<-merge(max,min,by.x=c("Group.1","Group.2"),by.y=c("Group.1","Group.2"))
+max_min$difference<-(max_min$x.x-max_min$x.y)
+mean_dur<-(aggregate(max_min[, 5], list(max_min$Group.1,max_min$Group.2), mean))
+mean_dur_2<-(aggregate(mean_dur[, 3], list(mean_dur$Group.2), mean))
+mean_dur_2
+```
+
+```{r}
+#cbt pwp counselling 3 main therapy groups
+# does being a part of multiple workstreams means better chance of success in mental health outcome
+
+attach(mental_health_outcomes)
+
+```
+do users achieve recovery
+```{r}
+recovery_flag<-(aggregate(mental_health_outcomes[, 24], list(mental_health_outcomes$Person.ID), max))
+summary(as.factor(recovery_flag$x))
+
+#total 
+#8547 patients
+#recovery 
+#2562/(5181+2562)= 33% people recovered
+```
+
+
+20-29 low -pdp or groups
+40-51 high
+42,44,46,48,51-counselling
+others cbt
+
+5-item self-report measure which provides an experiential impact of a disorder from the patient’s point of view. 
+It looks at how the disorder impairs the patient’s ability to function day to day with depression and / or anxiety as well as phobic disorders.
+
+Social phobia 0-8 
+
+Agoraphobia 0-8 
+
+Specific phobia 0-8 
+
+COPD score 0-40 Assess severity of COPD (Chronic Obstructive Pulmonary Disease) 
+
+PHQ15 score 0-30 
+-->5: mild
+, >10: moderate
+, >15: severe 
+Assess severity of somatic symptoms 
+Pain score 0-90 Assesses how pain has interfered with general life in the last 24 hrs. 
+
+Diabetes distress score
+0-102 Total score > 51 is a distress level worthy of clinical attention.
+
+
+Does (soft) outcome depend on the service user’s background?
+
+```{r}
+# code all soft outcomes into groups if needed
+#phq 15
+# 0-5 none
+# >5 mild
+# >10 moderate
+# >15 severe
+#mental_health_outcomes$PHQ15_score_new<-as.numeric(mental_health_outcomes$PHQ15_scor
+# (mental_health_outcomes$PHQ15_score_new[PHQ15_score >= 0 & PHQ15_score <= 5]) <- "0"
+# mental_health_outcomes$PHQ15_score_new[PHQ15_score > 5 & PHQ15_score <= 10] <- "1"
+# mental_health_outcomes$PHQ15_score_new[PHQ15_score > 10 & PHQ15_score <= 15] <- "2"
+# mental_health_outcomes$PHQ15_score_new[PHQ15_score > 15 ] <- "3"
+# mental_health_outcomes$PHQ15_score_new<-as.factor(mental_health_outcomes$PHQ15_score_new)
+# summary(mental_health_outcomes$PHQ15_score_new)
+#  Mild     Moderate        None        Severe       NA's 
+#     150      115       94      125    46661 
+
+
+summary(mental_health_outcomes$PHQ15_score)
+```
+
+
+Diabetes distress score
+0-102 Total score > 51 is a distress level worthy of clinical attention.
+```{r}
+#mental_health_outcomes$Diabetes_distress_score_new<-as.numeric(mental_health_outcomes$Diabetes_distress_score_new)
+# mental_health_outcomes$Diabetes_distress_score_new[Diabetes_distress_score <=51 ] <- "0"
+# mental_health_outcomes$Diabetes_distress_score_new[Diabetes_distress_score >51 ] <- "1"
+# mental_health_outcomes$Diabetes_distress_score_new<-as.factor(mental_health_outcomes$Diabetes_distress_score_new)
+# summary(mental_health_outcomes$Diabetes_distress_score_new)
+#  0     1  NA's 
+ #  82    10 47053 
+```
+check na's in other measures
+Social phobia 0-8 
+Agoraphobia 0-8 
+Specific phobia 0-8 
+COPD score 0-40 Assess severity of COPD (Chronic Obstructive Pulmonary Disease) 
+PHQ15 score 0-30 Assess severity of somatic symptoms 
+Pain score 0-90 Assesses how pain has interfered with general life in the last 24 hrs. 
+Diabetes distress score 0-102
+```{r}
+#total rows 47145
+summary(mental_health_outcomes$Social_phobia) #1948 na's
+summary(mental_health_outcomes$Agoraphobia)# 1977 na's
+summary(mental_health_outcomes$Specific_phobia) #2096 na's
+summary(mental_health_outcomes$COPD_score) #47039
+summary(mental_health_outcomes$PHQ15_score)# 46661
+summary(mental_health_outcomes$Pain_score)#46839 na's
+summary(mental_health_outcomes$Diabetes_distress_score) #47053
+summary(mental_health_outcomes$GAD7)#77 na's
+summary(mental_health_outcomes$PHQ9)# 23 na's
+```
+
+there are a lot of na's in some of the measures. might be worth not using all of them (not using last 4?)
+
+first lets figure out if there is an improvement in self scoring
+need to find max and min for each score for each user.
+need to roll up by user and aggregate on max and min dates for each score
+
+
+Social_phobia) #1948 na's
+Agoraphobia)# 1977 na's
+Specific_phobia) #2096 na's
+COPD_score) #47039
+PHQ15_score_new)# 46661
+Pain_score)#46839 na's
+Diabetes_distress_score_new) #47053
+GAD #77
+PHQ9 #23
+
+
+```{r}
+mental_health_outcomes$Date1<-as.Date(mental_health_outcomes$Date,format = "%d/%m/%Y")
+mental_health_outcomes<-as.data.frame(mental_health_outcomes)
+
+
+#need to create tables for max date and for min score
+
+
+max_date_score<-(aggregate(mental_health_outcomes[,25], list(mental_health_outcomes$Person.ID
+                                                              # mental_health_outcomes$Social_phobia,
+                                                              #  mental_health_outcomes$Agoraphobia,
+                                                              # mental_health_outcomes$Specific_phobia,
+                                                              #  mental_health_outcomes$COPD_score,
+                                                              #  mental_health_outcomes$PHQ15_score_new,
+                                                              # mental_health_outcomes$Pain_score,                                                        mental_health_outcomes$Diabetes_distress_score_new
+                                                             ) ,max))
+
+min_date_score<-(aggregate(mental_health_outcomes[, 25], list(mental_health_outcomes$Person.ID
+                                                              # mental_health_outcomes$Social_phobia,
+                                                              #  mental_health_outcomes$Agoraphobia,
+                                                              # mental_health_outcomes$Specific_phobia,
+                                                              #  mental_health_outcomes$COPD_score,
+                                                              #  mental_health_outcomes$PHQ15_score_new,
+                                                              # mental_health_outcomes$Pain_score,                                                        mental_health_outcomes$Diabetes_distress_score_new
+                                                             ) ,min))
+
+
+
+
+
+
+
+# now need to get scores against max dates and min dates
+latest_scores<-merge(max_date_score,mental_health_outcomes,by.x=c("Group.1","x"),by.y=c("Person.ID","Date1"))
+
+#we have more records than people in this, this means we have same people on same dates with different scores. we need to pick people with least scores for the latest dates.
+latest_scores$Diabetes_distress_score<-as.factor(latest_scores$Diabetes_distress_score_new)
+
+latest_scores$Diabetes_distress_score<-as.numeric(as.character(latest_scores$Diabetes_distress_score))
+
+
+latest_scores$PHQ15_score<-as.numeric(as.character(latest_scores$PHQ15_score))
+latest_scores<-latest_scores[!is.na(latest_scores$Social_phobia), ]
+latest_scores<-latest_scores[!is.na(latest_scores$Agoraphobia), ]
+latest_scores<-latest_scores[!is.na(latest_scores$Specific_phobia), ]
+
+
+
+max_date_min_score<-(aggregate(latest_scores[, c(11:12,18:24)], list(latest_scores$Group.1,latest_scores$x
+                                                              # mental_health_outcomes$Social_phobia,
+                                                              #  mental_health_outcomes$Agoraphobia,
+                                                              # mental_health_outcomes$Specific_phobia,
+                                                              #  mental_health_outcomes$COPD_score,
+                                                              #  mental_health_outcomes$PHQ15_score_new,
+                                                              # mental_health_outcomes$Pain_score,                                                        mental_health_outcomes$Diabetes_distress_score_new
+                                                             ) ,min))
+
+
+
+# now earliest scores
+earliest_scores<-merge(min_date_score,mental_health_outcomes,by.x=c("Group.1","x"),by.y=c("Person.ID","Date1"))
+
+
+earliest_scores$PHQ15_score<-as.numeric(as.character(earliest_scores$PHQ15_score))
+
+earliest_scores$Diabetes_distress_score<-as.numeric(as.character(earliest_scores$Diabetes_distress_score))
+
+summary(earliest_scores$Social_phobia)
+
+earliest_scores<-earliest_scores[!is.na(earliest_scores$Social_phobia), ]
+earliest_scores<-earliest_scores[!is.na(earliest_scores$Agoraphobia), ]
+earliest_scores<-earliest_scores[!is.na(earliest_scores$Specific_phobia), ]
+
+min_date_max_score<-(aggregate(earliest_scores[, c(11:12,18:24)], list(earliest_scores$Group.1,earliest_scores$x
+                                                              # mental_health_outcomes$Social_phobia,
+                                                              #  mental_health_outcomes$Agoraphobia,
+                                                              # mental_health_outcomes$Specific_phobia,
+                                                              #  mental_health_outcomes$COPD_score,
+                                                              #  mental_health_outcomes$PHQ15_score_new,
+                                                              # mental_health_outcomes$Pain_score,                                                        mental_health_outcomes$Diabetes_distress_score_new
+                                                             ) ,max))
+
+
+
+
+all_scores<-merge(min_date_max_score,max_date_min_score,by.x=c("Group.1"),by.y=c("Group.1"))
+
+
+#now take the difference between the scores
+
+# Social_phobia) #1948 na's
+# Agoraphobia)# 1977 na's
+# Specific_phobia) #2096 na's
+# COPD_score) #47039
+# PHQ15_score_new)# 46661
+# Pain_score)#46839 na's
+# Diabetes_distress_score_new) #47053
+
+
+
+
+all_scores$Social_phobia_difference<-(all_scores$Social_phobia.x-all_scores$Social_phobia.y)
+all_scores$Agoraphobia_difference<-(all_scores$Agoraphobia.x-all_scores$Agoraphobia.y)
+all_scores$Specific_phobia_difference<-(all_scores$Specific_phobia.x-all_scores$Specific_phobia.y)
+all_scores$COPD_difference<-(all_scores$COPD_score.x-all_scores$COPD_score.y)
+all_scores$PHQ15_difference<-(all_scores$PHQ15_score.x-all_scores$PHQ15_score.y)
+all_scores$Pain_score_difference<-(all_scores$Pain_score.x-all_scores$Pain_score.y)
+all_scores$Diabetes_distress_difference<-(all_scores$Diabetes_distress_score.x-all_scores$Diabetes_distress_score.y)
+all_scores$GAD_difference<-(all_scores$GAD7.x-all_scores$GAD7.y)
+all_scores$PHQ9_difference<-(all_scores$PHQ9.x-all_scores$PHQ9.y)
+
+# Simple Bar Plot 
+
+
+
+counts_social <- table(all_scores$Social_phobia_difference)
+counts_agoraphobia<-table(all_scores$Agoraphobia_difference)
+counts_Specific_phobia<-table(all_scores$Specific_phobia_difference)
+counts_COPD<-table(all_scores$COPD_difference)
+counts_PHQ15<-table(all_scores$PHQ15_difference)
+counts_Pain<-table(all_scores$Pain_score_difference)
+counts_Diab<-table(all_scores$Diabetes_distress_difference)
+
+counts_Gad<-table(all_scores$GAD_difference)
+counts_PHQ<-table(all_scores$PHQ9_difference)
+
+```
+
+```{r}
+
+
+
+# Outside bars
+par(mfrow=c(3,3))
+barplot(counts_social, main="Soft outcomes improvement or deterioration 
+        -Social phobia", sub="Social phobia ",
+  xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+
+barplot(counts_agoraphobia, main="Soft outcomes improvement or deterioration-
+        Agoraphobia", sub="Agoraphobia ",
+  xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+  
+barplot(counts_Specific_phobia, main="Soft outcomes improvement or deterioration-
+        Specific phobia", sub="Specific phobia ",
+  xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+ 
+barplot(counts_COPD, main="Soft outcomes improvement or deterioration- 
+        Chronic Obstructive Pulmonary Disease", sub="Chronic Obstructive Pulmonary Disease ",
+  xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+
+barplot(counts_PHQ15, main="Soft outcomes improvement or deterioration-
+        severity of somatic symptoms", sub="severity of somatic symptoms ",
+  xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+  
+barplot(counts_Pain, main="Soft outcomes improvement or deterioration-
+        Pain scores", sub="Pain scores ",
+  xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+
+barplot(counts_Diab, main="Soft outcomes improvement or deterioration- 
+        Diabetes distress score", sub="Diabetes distress score ",
+  xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+  
+
+```
+
+```{r}
+
+
+library(plotly)
+counts_Gad<-table(all_scores$GAD_difference)
+counts_PHQ<-table(all_scores$PHQ9_difference)
+
+# x <- (all_scores$GAD_difference)
+# 
+# p <- plot_ly(all_scores, x = ~x, type = 'bar', 
+#               textposition = 'auto'
+#              #,
+#           #   marker = list(color = 'rgb(158,202,225)',
+#             #               line = list(color = 'rgb(8,48,107)', width = 1.5))) %>%
+#   layout(title = "Hard scores outcomes - 
+#         Generalised Anxiety Disorder (GAD)",
+#          xaxis = list(title = ""),
+#          yaxis = list(title = ""))))
+# 
+# p
+counts_Gad<-table(all_scores$GAD_difference)
+counts_PHQ<-table(all_scores$PHQ9_difference)
+
+par(mfrow=c(1,2))
+
+
+barplot(counts_Gad, 
+main="Hard scores outcomes improvement/deterioration - 
+        Generalised Anxiety Disorder (GAD)", sub="
+        Generalised Anxiety Disorder. ",
+  xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+
+
+barplot(counts_PHQ, main="Hard scores outcomes improvement/deterioration- 
+        Patient Health Questionnaire (PHQ) 
+        screening for the presence and severity of depression.", sub="PHQ9 ",xlab="Difference between scores at the end versus beginning of the treatment", ylab="counts",cex.names = 0.5)
+
+```
+
+try run a model on gad and phq to see if there is any dependency with user info and outcomes
+first join differences table and users table
+```{r}
+all_scores_users<-merge(all_scores,users_clean,by.x=c("Group.1"),by.y=c("Person.ID"))
+
+#select relevant columns
+all_scores_users_1<-all_scores_users[,c("Group.1","Group.2.x","Group.2.y","GAD_difference","PHQ9_difference","Age","Ward","Local_Authority","Gender","Ethnicity","Referred","Referral_Source","Registered_Centre","Sexual_Orientation","Long_Term_Physical_Health_Condition_","British_Armed_Forces","Sum_of_hours_attended","Count_of_sessions_attended","Domestic_Abuse","Personal_Circumstances","Income","Unemployed_Since",
+                                        "On_Benefits")]
+
+
+#domestic abuse 
+# personal cicrumstnces
+#add 0s where missing
+#count na's
+
+colSums(is.na (all_scores_users_1))
+all_scores_users_1$Unemployed_Since[is.na(all_scores_users_1$Unemployed_Since)] <- 0
+all_scores_users_1$Personal_Circumstances[all_scores_users_1$Personal_Circumstances==""] <- 0
+all_scores_users_1$Domestic_Abuse[all_scores_users_1$Domestic_Abuse==""] <- 0
+all_scores_users_1$On_Benefits[all_scores_users_1$On_Benefits==""] <- 0
+
+
+ all_scores_users_1$Personal_Circumstances <- ifelse(is.na(all_scores_users_1$Personal_Circumstances), 
+             'None', all_scores_users_1$Personal_Circumstances)
+
+ 
+  all_scores_users_1$Domestic_Abuse <- ifelse(is.na(all_scores_users_1$Domestic_Abuse), 
+             '0', all_scores_users_1$Domestic_Abuse)
+
+  all_scores_users_1$On_Benefits <- ifelse(is.na(all_scores_users_1$On_Benefits), 
+             '0', all_scores_users_1$On_Benefits)
+
+```
+
+```{r}
+#remove all na's
+all_scores_users_1<-all_scores_users_1[complete.cases(all_scores_users_1), ]
+```
+
+can run logistic regression for gad and phq. need to code gad>0 as 1 and <=0 as 0. same for phq
+```{r}
+all_scores_users_1<-as.data.frame(all_scores_users_1)
+all_scores_users_1$PHQ9_difference1[all_scores_users_1$PHQ9_difference >0 ] <- "1"
+all_scores_users_1$PHQ9_difference1[all_scores_users_1$PHQ9_difference <=0] <- "0"
+all_scores_users_1$GAD_difference1[all_scores_users_1$GAD_difference >0 ] <- "1"
+all_scores_users_1$GAD_difference1[all_scores_users_1$GAD_difference <= 0 ] <- "0"
+
+all_scores_users_1$PHQ9_difference1<-as.factor((all_scores_users_1$PHQ9_difference1))
+all_scores_users_1$GAD_difference1<-as.factor((all_scores_users_1$GAD_difference1))
+
+
+
+```
+add diagnosis
+```{r}
+
+# all_scores_users_2<-sqldf('select all_scores_users_1.*, mental_health_referal.Provisional.Diagnosis..ICD. from all_scores_users_1 left join mental_health_referal on mental_health_referal.Person.ID = all_scores_users_1.Group.1')
+# 
+# all_scores_users_2<-merge(all_scores_users_1,mental_health_referral,by.x=c("Group.1"),by.y=c("Person.ID"))
+
+```
+
+try random forest 
+
+```{r}
+#splitting in training and testing
+smp_size <- floor(0.75 * nrow(all_scores_users_1))
+
+## set the seed to make your partition reproducible
+set.seed(123)
+all_scores_users_1$Sum_of_hours_attended<-as.numeric(all_scores_users_1$Sum_of_hours_attended)
+all_scores_users_1$Personal_Circumstances<-as.factor(all_scores_users_1$Personal_Circumstances)
+train_ind <- sample(seq_len(nrow(all_scores_users_1)), size = smp_size)
+
+train <- all_scores_users_1[train_ind, ]
+test <- all_scores_users_1[-train_ind, ]
+
+library(textir) ## needed to standardize the data
+library(class) ## needed for knn
+library(ggplot2) # visualization
+library(ggthemes) # visualization
+library(scales) # visualization
+library(dplyr) # data manipulation
+library(randomForest) # random forest
+library(corrplot) # correlation
+library(gridExtra)
+library(GGally)
+library(e1071)
+```
+```{r}
+
+train_train <- train[1:3948,]
+test_train <- train[3949:5235,]
+
+summary(train_train$PHQ9_difference1)
+```
+```{r}
+# Initial model
+# Random forest 
+library(randomForest)
+
+set.seed(1000)
+
+output.forest <- randomForest(train_train$PHQ9_difference1 ~ .,data = train_train[,c(6,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23)], importance = T)
+                                                    #8,9,10,11,13:23)], importance = T)
+print(output.forest)
+
+```
+```{r}
+(importance(output.forest))
+varImpPlot(output.forest)
+
+```
+
+
+```{r}
+fitForest1 <-predict(output.forest, newdata = test_train)
+
+
+# Create a rank variable based on importance
+
+```
+
+
+```{r}
+# Random Search
+# Algorithm Tune (tuneRF)
+set.seed(seed)
+bestmtry <- tuneRF(train_train[,c(6,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23)], train_train$PHQ9_difference1, stepFactor=1.5, improve=1e-5, ntree=700)
+print(bestmtry)
+```
+```{r}
+output.forest <- randomForest(train_train$PHQ9_difference1 ~ .,data = train_train[,c(6,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23)], importance = T,mtry=2)
+                                                    #8,9,10,11,13:23)], importance = T)
+print(output.forest)
+
+```
+
+
+```{r}
+(importance(output.forest))
+varImpPlot(output.forest)
+
+```
+
+
+do gad now
+```{r}
+output.forest1 <- randomForest(train_train$GAD_difference1 ~ .,data = train_train[,c(6,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23)], importance = T)
+                                                    #8,9,10,11,13:23)], importance = T)
+print(output.forest1)
+
+
+```
+
+
+tunining gad model
+```{r}
+set.seed(seed)
+bestmtry1 <- tuneRF(train_train[,c(6,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23)], train_train$GAD_difference1, stepFactor=1.5, improve=1e-5, ntree=700)
+print(bestmtry1)
+
+```
+run with tuned now
+```{r}
+output.forest1 <- randomForest(train_train$GAD_difference1 ~ .,data = train_train[,c(6,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23)], importance = T,mtry=2)
+                                                    #8,9,10,11,13:23)], importance = T)
+print(output.forest1)
+
+```
+plot importance
+```{r}
+(importance(output.forest1))
+varImpPlot(output.forest1)
+
+```
+
+GINI: GINI importance measures the average gain of purity by splits of a given variable. If the variable is useful, it tends to split mixed labeled nodes into pure single class nodes. Splitting by a permuted variables tend neither to increase nor decrease node purities. Permuting a useful variable, tend to give relatively large decrease in mean gini-gain. GINI importance is closely related to the local decision function, that random forest uses to select the best available split.
+
+For Mean Decrease in Accuracy:
+Imagine you have a model built using a few variables including gender to predict if a person prefers coffee white or black.
+Take one variable and scramble it in a way that matches the distribution of the variable (e.g. if the variable is gender and 60% of the observations are male, than randomly assign male to 60% of the set - preserve the distribution but scramble the observations).
+Measure the predictive accuracy of the resulting tree.
+Repeat for each variable.
+The loss of accuracy is the Mean Decrease in Accuracy.
+Note that this is not causal - and in practical use I would focus on the ranking of the variable as a data point for further investigation rather than the actual magnitude of the measure.
+
+
+For Mean Decrease in Gini (Index):
+Imagine you are looking at one of the nodes just above the leaves in a decision tree where you are predicting whether someone prefers white or black coffee.
+At this node, the model has the chance to split by multiple variables.
+It does this by searching for the variable to split where the split gives the lowest Gini index (lower is ‘purer’ / ‘better’).
+If the model chooses to split by gender, the subsequent left node (e.g. male) observations may all like black coffee and the right node (e.g. female) may all like white coffee (i.e. both nodes are 100% ‘pure’ and hits the lowest Gini Index of 0).
+If the model chooses another variable, the subsequent left and right nodes may have a mix of outcomes (i.e. be less pure, with a larger Gini index).
+This is not optimal and finally the model chooses to go with gender
+
+=======================================================================================================
+
+try binning the variables to improve performance
+
+```{r}
+library(woeBinning)
+# Bin all variables of the data frame (apart from the target variable)
+# with default parameter settings
+binning <- woe.tree.binning(all_scores_users_1, all_scores_users_1$PHQ9_difference1, c('Age','Local_Authority','Gender','Ethnicity','Referred','Registered_Centre','Sexual_Orientation','Long_Term_Physical_Health_Condition_','British_Armed_Forces','Sum_of_hours_attended','Count_of_sessions_attended','Domestic_Abuse','Personal_Circumstances','Income','Unemployed_Since',
+                                        'On_Benefits'))
+```
+
+
+
